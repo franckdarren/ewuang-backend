@@ -170,6 +170,7 @@ model stocks {
 
 model users {
   id          BigInt     @id @default(autoincrement())
+  auth_id           String?    @unique @db.Uuid
   name        String     @db.VarChar(255)
   role        String     @db.VarChar(255)
   email       String     @unique @db.VarChar(255)
@@ -188,6 +189,46 @@ model users {
   commandes   commandes[]
   livraisons  livraisons[]
   reclamations reclamations[]
+
+  // Relations pour BetterAuth
+  accounts    accounts[]
+  sessions    sessions[]
+}
+// Modèle pour les comptes OAuth (Google, Facebook, etc.)
+model accounts {
+  id                 BigInt   @id @default(autoincrement())
+  user_id            BigInt
+  type               String   // 'oauth' ou 'credentials'
+  provider           String   // 'google', 'facebook', 'email', etc.
+  provider_account_id String   // id du compte côté provider
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  users              users    @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([provider, provider_account_id])
+}
+
+// Modèle pour la gestion des sessions persistantes
+model sessions {
+  id           BigInt   @id @default(autoincrement())
+  session_token String  @unique
+  user_id      BigInt
+  expires      DateTime
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  users        users    @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
 }
 
 model variations {
