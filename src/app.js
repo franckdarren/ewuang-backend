@@ -20,6 +20,9 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
 }));
+app.set('json replacer', (key, value) =>
+    typeof value === 'bigint' ? value.toString() : value
+);
 
 
 // ==========================
